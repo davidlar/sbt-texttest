@@ -3,9 +3,7 @@ package org.texttest.sbtplugin
 
 import java.io.{File, IOException}
 import java.nio.charset.StandardCharsets
-import java.nio.file.{Files, Paths, Path}
-
-import sbt.Logger
+import java.nio.file.{Files, Path}
 
 class TexttestInstaller(log: Logger) extends TexttestUtil(log) {
 

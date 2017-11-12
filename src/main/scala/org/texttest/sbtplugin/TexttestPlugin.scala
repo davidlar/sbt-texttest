@@ -1,11 +1,10 @@
 package org.texttest.sbtplugin
 
-import java.io.{File, IOException}
-import java.nio.file.{Files, Path, Paths}
+import java.io.File
 
 import org.apache.commons.io.FileUtils
-import sbt._
 import sbt.Keys._
+import sbt._
 
 /**
  * Sbt plugin that can install and execute texttests as part of an sbt build.
@@ -59,12 +58,13 @@ object TexttestPlugin extends AutoPlugin {
     texttestSandbox := target.value / "sandbox",
     unzipDependencyJars := {
       val log = streams.value.log
+      val updateReport = (update in Compile).value
       texttestDependencies.value.foreach { (dependencyName: String) =>
         val extraConfigTarget = texttestExtraSearchDirectory.value / dependencyName
         if (extraConfigTarget.exists()) {
           FileUtils.deleteDirectory(extraConfigTarget)
         }
-        val configJar: File = (update in Compile).value
+        val configJar: File = updateReport
           .select(configurationFilter("compile"))
           .filter(_.name.contains(dependencyName))
           .head
@@ -74,13 +74,14 @@ object TexttestPlugin extends AutoPlugin {
     },
     texttestInstall := {
       val log = streams.value.log
-      val installer = new TexttestInstaller(log)
+      val testClasspath = (fullClasspath in Test).value
+      val installer = new TexttestInstaller(new Logger(log))
       if (texttestGlobalInstall.value) {
         val texttestRootPath = installer.findTexttestRootPath(texttestRoot.value, texttestTestCaseLocation.value.toPath)
         installer.installUnderTexttestRoot(texttestTestCaseLocation.value.toPath, texttestAppNames.value, texttestRootPath)
       }
       if (texttestInstallClasspath.value) {
-        val classpath = (fullClasspath in Test).value.map(_.data).toList
+        val classpath = testClasspath.map(_.data).toList
         installer.writeClasspathToInterpreterOptionsFile(texttestAppNames.value, texttestExtraSearchDirectory.value.toPath, classpath)
       }
 
@@ -88,7 +89,7 @@ object TexttestPlugin extends AutoPlugin {
     texttestRun := {
       val log = streams.value.log
       log.info(s"running texttest applications ${texttestAppNames.value} in ${baseDirectory.value}")
-      val runner = new TexttestRunner(log)
+      val runner = new TexttestRunner(new Logger(log))
       val texttest = runner.findTextTestExecutable(texttestExecutable.value)
       val texttestRootPath = runner.findTexttestRootPath(texttestRoot.value, texttestTestCaseLocation.value.toPath)
       runner.runTexttest(texttest,
@@ -102,9 +103,9 @@ object TexttestPlugin extends AutoPlugin {
         texttestTestPathSelection.value,
         texttestTestNameSelection.value)
     },
-    unzipDependencyJars <<= unzipDependencyJars.dependsOn(compile in Compile),
-    texttestInstall <<= texttestInstall.dependsOn(unzipDependencyJars),
-    texttestRun <<= texttestRun.dependsOn(texttestInstall)
+    unzipDependencyJars := unzipDependencyJars.dependsOn(compile in Compile).value,
+    texttestInstall := texttestInstall.dependsOn(unzipDependencyJars).value,
+    texttestRun := texttestRun.dependsOn(texttestInstall).value
   )
 
 

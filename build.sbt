@@ -15,4 +15,6 @@ licenses += ("MIT", url("https://github.com/emilybache/sbt-texttest/blob/master/
 
 libraryDependencies += "commons-io" % "commons-io" % "2.5"
 
-sbtrelease.ReleasePlugin.releaseSettings
+enablePlugins(ReleasePlugin)
+
+crossSbtVersions := Vector("0.13.16", "1.0.3")

@@ -1,9 +1,9 @@
 package org.texttest.sbtplugin
 
-import java.io.{IOException, File}
-import java.nio.file.{Paths, Files, Path}
+import java.io.{File, IOException}
+import java.nio.file.{Files, Path, Paths}
 
-import sbt.{Process, Logger}
+import scala.sys.process.Process
 
 /**
  * Class that knows how to run texttests

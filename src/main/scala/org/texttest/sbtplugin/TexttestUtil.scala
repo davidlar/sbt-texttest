@@ -1,9 +1,6 @@
 package org.texttest.sbtplugin
 
-import java.io.File
-import java.nio.file.{Paths, Path}
-
-import sbt.Logger
+import java.nio.file.{Path, Paths}
 
 /**
  * useful utilities
